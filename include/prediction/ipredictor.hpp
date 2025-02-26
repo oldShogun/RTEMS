@@ -4,38 +4,80 @@
 #include "../common/types.hpp"
 #include "../monitoring/imonitor.hpp"
 
+/**
+ * @namespace rtems
+ * @brief Корневое пространство имён для системы моделирования электромеханических систем в реальном времени
+ */
 namespace rtems {
+/**
+ * @namespace rtems::prediction
+ * @brief Компоненты для прогнозирования состояния электромеханической системы
+ */
 namespace prediction {
 
-// Интерфейс предиктора
+/**
+ * @class IPredictor
+ * @brief Интерфейс предиктора для прогнозирования состояний системы
+ *
+ * Определяет общий интерфейс для всех алгоритмов прогнозирования,
+ * позволяющих предсказывать будущее состояние электромеханической системы.
+ */
 class IPredictor {
 public:
-    // Виртуальный деструктор
+    /**
+     * @brief Виртуальный деструктор
+     */
     virtual ~IPredictor() = default;
     
-    // Инициализация предиктора
+    /**
+     * @brief Инициализация предиктора
+     * @param monitor Указатель на монитор состояния системы
+     * @throw InitializationException в случае ошибки инициализации
+     */
     virtual void initialize(monitoring::IMonitorPtr monitor) = 0;
     
-    // Запуск прогнозирования
+    /**
+     * @brief Запуск прогнозирования на указанный горизонт времени
+     * @param time_horizon Горизонт прогнозирования в секундах
+     * @return Результат прогнозирования (структура PredictionResult)
+     * @throw SimulationException в случае ошибки моделирования
+     */
     virtual common::PredictionResult predict(double time_horizon) = 0;
     
-    // Получение последнего результата прогнозирования
+    /**
+     * @brief Получение последнего результата прогнозирования
+     * @return Последний результат прогнозирования
+     */
     virtual common::PredictionResult get_last_result() const = 0;
     
-    // Проверка прогнозирования на запуск
+    /**
+     * @brief Проверка состояния прогнозирования
+     * @return true если прогнозирование выполняется, false в противном случае
+     */
     virtual bool is_prediction_running() const = 0;
     
-    // Остановка прогнозирования
+    /**
+     * @brief Остановка текущего процесса прогнозирования
+     */
     virtual void stop_prediction() = 0;
     
-    // Получение типа предиктора
+    /**
+     * @brief Получение типа предиктора
+     * @return Строка с типом предиктора
+     */
     virtual std::string get_type() const = 0;
     
-    // Получение времени выполнения последнего прогнозирования в миллисекундах
+    /**
+     * @brief Получение времени выполнения последнего прогнозирования 
+     * @return Время выполнения в миллисекундах
+     */
     virtual double get_last_execution_time() const = 0;
 };
 
-// Тип умного указателя на интерфейс предиктора
+/**
+ * @typedef IPredictorPtr
+ * @brief Тип умного указателя на интерфейс предиктора
+ */
 using IPredictorPtr = std::shared_ptr<IPredictor>;
 
 } // namespace prediction
