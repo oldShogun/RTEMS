@@ -7,6 +7,8 @@
 #include <cmath>
 #include <stdexcept>
 
+#include <nlohmann/json.hpp>
+
 /**
  * @namespace rtems
  * @brief Корневое пространство имён для системы моделирования электромеханических систем в реальном времени
