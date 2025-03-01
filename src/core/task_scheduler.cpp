@@ -8,6 +8,7 @@
 
 #include "core/task_scheduler.hpp"
 #include "common/logger.hpp"
+#include <sstream>
 
 namespace rtems {
 namespace core {
@@ -20,21 +21,23 @@ TaskScheduler& TaskScheduler::getInstance() {
 TaskScheduler::TaskScheduler()
     : m_running(false)
 {
-    RTEMS_LOG_INFO("TaskScheduler created");
+    LOG_INFO("TaskScheduler created");
 }
 
 TaskScheduler::~TaskScheduler() {
     stop();
-    RTEMS_LOG_INFO("TaskScheduler destroyed");
+    LOG_INFO("TaskScheduler destroyed");
 }
 
 void TaskScheduler::start(size_t threadCount) {
     if (m_running) {
-        RTEMS_LOG_WARN("TaskScheduler is already running");
+        LOG_WARNING("TaskScheduler is already running");
         return;
     }
     
-    RTEMS_LOG_INFO("Starting TaskScheduler with {} threads", threadCount);
+    std::ostringstream oss;
+    oss << "Starting TaskScheduler with " << threadCount << " threads";
+    LOG_INFO(oss.str());
     
     m_threadPool = std::make_unique<ThreadPool>(threadCount);
     m_running = true;
@@ -45,7 +48,7 @@ void TaskScheduler::start(size_t threadCount) {
     // Запускаем поток обработки запланированных задач
     m_scheduledTaskThread = std::thread(&TaskScheduler::scheduledTaskWorker, this);
     
-    RTEMS_LOG_INFO("TaskScheduler started");
+    LOG_INFO("TaskScheduler started");
 }
 
 void TaskScheduler::stop() {
@@ -53,7 +56,7 @@ void TaskScheduler::stop() {
         return;
     }
     
-    RTEMS_LOG_INFO("Stopping TaskScheduler");
+    LOG_INFO("Stopping TaskScheduler");
     
     m_running = false;
     
@@ -72,7 +75,7 @@ void TaskScheduler::stop() {
         m_threadPool->shutdown();
     }
     
-    RTEMS_LOG_INFO("TaskScheduler stopped");
+    LOG_INFO("TaskScheduler stopped");
 }
 
 bool TaskScheduler::cancelPeriodicTask(size_t taskId) {
@@ -115,7 +118,7 @@ size_t TaskScheduler::getScheduledTaskCount() const {
 }
 
 void TaskScheduler::periodicTaskWorker() {
-    RTEMS_LOG_INFO("Periodic task worker started");
+    LOG_INFO("Periodic task worker started");
     
     while (m_running) {
         auto now = std::chrono::steady_clock::now();
@@ -147,9 +150,13 @@ void TaskScheduler::periodicTaskWorker() {
                 try {
                     task->execute();
                 } catch (const std::exception& e) {
-                    RTEMS_LOG_ERROR("Exception in periodic task {}: {}", task->getName(), e.what());
+                    std::ostringstream oss;
+                    oss << "Exception in periodic task " << task->getName() << ": " << e.what();
+                    LOG_ERROR(oss.str());
                 } catch (...) {
-                    RTEMS_LOG_ERROR("Unknown exception in periodic task {}", task->getName());
+                    std::ostringstream oss;
+                    oss << "Unknown exception in periodic task " << task->getName();
+                    LOG_ERROR(oss.str());
                 }
             });
         }
@@ -158,11 +165,11 @@ void TaskScheduler::periodicTaskWorker() {
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
     
-    RTEMS_LOG_INFO("Periodic task worker stopped");
+    LOG_INFO("Periodic task worker stopped");
 }
 
 void TaskScheduler::scheduledTaskWorker() {
-    RTEMS_LOG_INFO("Scheduled task worker started");
+    LOG_INFO("Scheduled task worker started");
     
     while (m_running) {
         auto now = std::chrono::system_clock::now();
@@ -193,9 +200,13 @@ void TaskScheduler::scheduledTaskWorker() {
                 try {
                     task->execute();
                 } catch (const std::exception& e) {
-                    RTEMS_LOG_ERROR("Exception in scheduled task {}: {}", task->getName(), e.what());
+                    std::ostringstream oss;
+                    oss << "Exception in scheduled task " << task->getName() << ": " << e.what();
+                    LOG_ERROR(oss.str());
                 } catch (...) {
-                    RTEMS_LOG_ERROR("Unknown exception in scheduled task {}", task->getName());
+                    std::ostringstream oss;
+                    oss << "Unknown exception in scheduled task " << task->getName();
+                    LOG_ERROR(oss.str());
                 }
             });
         }
@@ -204,7 +215,7 @@ void TaskScheduler::scheduledTaskWorker() {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
     
-    RTEMS_LOG_INFO("Scheduled task worker stopped");
+    LOG_INFO("Scheduled task worker stopped");
 }
 
 } // namespace core

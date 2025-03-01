@@ -8,6 +8,7 @@
 
 #include "core/thread_pool.hpp"
 #include "common/logger.hpp"
+#include <sstream>
 
 namespace rtems {
 namespace core {
@@ -46,9 +47,11 @@ ThreadPool::ThreadPool(size_t numThreads)
                 try {
                     task();
                 } catch (const std::exception& e) {
-                    RTEMS_LOG_ERROR("Exception in thread pool task: {}", e.what());
+                    std::ostringstream oss;
+                    oss << "Exception in thread pool task: " << e.what();
+                    LOG_ERROR(oss.str());
                 } catch (...) {
-                    RTEMS_LOG_ERROR("Unknown exception in thread pool task");
+                    LOG_ERROR("Unknown exception in thread pool task");
                 }
                 
                 // Уменьшаем счетчик активных задач
@@ -57,7 +60,9 @@ ThreadPool::ThreadPool(size_t numThreads)
         });
     }
     
-    RTEMS_LOG_INFO("Thread pool created with {} worker threads", numThreads);
+    std::ostringstream oss;
+    oss << "Thread pool created with " << numThreads << " worker threads";
+    LOG_INFO(oss.str());
 }
 
 ThreadPool::~ThreadPool() {
@@ -93,7 +98,7 @@ void ThreadPool::shutdown() {
         }
     }
     
-    RTEMS_LOG_INFO("Thread pool shut down gracefully");
+    LOG_INFO("Thread pool shut down gracefully");
 }
 
 void ThreadPool::shutdownNow() {
@@ -117,7 +122,7 @@ void ThreadPool::shutdownNow() {
         }
     }
     
-    RTEMS_LOG_INFO("Thread pool shut down immediately");
+    LOG_INFO("Thread pool shut down immediately");
 }
 
 bool ThreadPool::isStopped() const {
